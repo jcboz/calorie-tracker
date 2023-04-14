@@ -1,0 +1,21 @@
+{% extends "layout.html" %}
+{% block title %}Sign In{% endblock %}
+{% block body %}
+    <ul>
+        <li><a href="{{ url_for('createChat') }}">New Activity </a></li>
+        <li class="active"><a href="{{ url_for('home') }}">Past Activities </a></li>
+        <li><a href="{{ url_for('profile') }}">Profile</a></li>
+        <li><a href="{{ url_for('logout') }}">Log Out</a></li>
+    </ul>
+  {% if chatrooms %}
+  <div class="events">
+  {%for chatroom in chatrooms%}
+    <div class="event">
+      {% if g.user.user_id == chatroom.parent_id%} <span>Activity: {{ chatroom.chatname }} | </span> <span> Date: {{ chatroom.date_created }}</span> 
+      <a href="{{ url_for('chatroom', chatroomid=chatroom.chatroom_id) }}"> View </a> <a href="{{ url_for('delete', chatroomid=chatroom.chatroom_id) }}">Delete</a> {% endif %} </a>
+    </div>
+  {% endfor %}
+  {% else %}
+    <span>There are no activities yet.</span>
+  {% endif %}
+{% endblock %}

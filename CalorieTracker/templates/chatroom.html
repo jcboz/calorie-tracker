@@ -1,0 +1,136 @@
+{% extends "layout.html" %}
+{% block title %}ChatRoom{% endblock %}
+{% block body %}
+<ul>
+  <li><a href="{{ url_for('createChat') }}">New Activity </a></li>
+  <li class="active"><a href="{{ url_for('home') }}">Past Activities </a></li>
+  <li><a href="{{ url_for('profile') }}">Profile</a></li>
+  <li><a href="{{ url_for('logout') }}">Log Out</a></li>
+</ul>
+  <h2>{{ chatroom.chatname }}</h2>
+  <h3> Name: {{ chatroom.user }} {{chatroom.user.height}}ins {{chatroom.user.weight}}lbs</h3>
+  <h4> Type: {{ chatroom.activity_type }} </h4> 
+  <h4> Duration: {{ chatroom.duration }} hours and {{ chatroom.duration_minutes }} minutes</h4>  
+  <h4> Calories Burnt: {{ chatroom.calculation }}</h4> 
+  {% if error %}<div class="error"><strong>Error:</strong> {{ error }}</div>{% endif %}
+  <form id="form">
+    <a href="{{ url_for('home') }}"> Back </a>
+    <!-- <div class="event">
+        <div id="messages"></div>
+        <div id="text-box">
+              <dd><input id="meat" type="text" name="meat" size="30" placeholder="Message" value="{{ request.form.meat }}">
+              <input id="submit" type="submit" value="Send"/>
+        </div>
+    </div> -->
+  </form>
+</div>
+
+<script>
+
+  const POLL_INTERVAL = 1000;
+  let timeoutID;
+  function setup() {
+    timeoutID = window.setTimeout(poller, POLL_INTERVAL);
+  }
+
+  function poller() {
+    console.log("Polling for new messages");
+    fetch("/get_messages")
+      .then((response) => {
+        return response.json();
+      })
+      .then(display)
+      .catch(() => {
+        window.location.href = "/";
+        console.log("Error fetching items!");
+      });
+  }
+  
+
+  var form = document.getElementById("form");
+  form.addEventListener('submit', submit_message);
+
+  function submit_message(event) {
+    event.preventDefault();
+    
+    var message = document.getElementById("meat");
+    
+    var body = { 
+      meat: message.value,
+    }
+
+
+    fetch('/chatroom/create-post', {
+      method: "post",
+      headers: new Headers({
+        "content-type": "application/json"
+      }),
+      body: JSON.stringify(body),
+    })
+      .then((response) => {
+        if (response.status !== 200) {
+          console.log(`Looks like there was a problem. Status code: ${response.status}`);
+          return;
+        }
+        response.json().then((data) => {
+          console.log(data);
+        });
+      })
+      .catch((error) => {
+        console.log("Fetch error: " + error);
+      });   
+  }
+  
+  fetch('/get_messages', {
+    method: "get",
+    headers: new Headers({
+      "content-type": "application/json"
+    }),
+  })
+    .then((response) => {
+      if (response.status !== 200) {
+        console.log(`Woah: Looks like there was a problem. Status code: ${response.status}`);
+      }
+      if (response.status == 404) {
+        console.log("SHOULD REDIRECT")
+      }
+      json = response.json();
+      console.log(json);
+      return json;
+    })
+    .then((data) => {
+        console.log(data);
+        //parsed = JSON.parse(data);
+        //console.log(parsed);
+        display(data);
+        clearInput();
+    })
+    .catch((error) => {
+      console.log("Fetch error: " + error);
+    });   
+    
+  
+  function display(data) {
+  var msg = document.getElementById("messages");
+  for (var i = 0; i < data.length; i++) {
+    var div = document.createElement("div");
+    div.innerHTML = 'Name: ' + data[i].user + ' | ' + data[i].content + ' | ' + data[i].date;
+    msg.appendChild(div);
+  }
+  clearInput();
+  timeoutID = window.setTimeout(poller, POLL_INTERVAL);
+  
+  
+  
+}
+
+function clearInput() {
+	console.log("Clearing messages");
+	document.getElementById("messages").value = "";
+}
+
+</script>
+  
+{% endblock %}
+
+
