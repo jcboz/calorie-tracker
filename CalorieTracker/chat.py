@@ -160,7 +160,7 @@ def createChat():
 		elif not request.form['duration_minutes']:
 			error = 'You have to enter duration minutes'
 		else:
-			db.session.add(Chatroom(request.form['activitytype'], g.user.user_id, datetime.now(), request.form['activitytype'], request.form['duration'], request.form['duration_minutes'], get_calories_burnt(request.form['activitytype'], request.form['duration'], request.form['duration_minutes'])))
+			db.session.add(Chatroom(request.form['activitytype'], g.user.user_id, datetime.now(), request.form['activitytype'], request.form['duration'], request.form['duration_minutes'], get_calories_burnt(request.form['activitytype'], request.form['duration'], request.form['duration_minutes']), g.user.weight, g.user.height, g.user.age))
 			db.session.commit()
 			flash('You have successfully calculated a new activity')
 	return render_template('createChat.html', error=error)

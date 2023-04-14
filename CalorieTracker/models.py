@@ -40,8 +40,12 @@ class Chatroom(db.Model):
 	duration = db.Column(db.Integer, nullable=False)
 	duration_minutes = db.Column(db.Integer, nullable=False)
 	calculation = db.Column(db.Integer, nullable=False)
+	weight = db.Column(db.Integer, nullable=False)
+	height = db.Column(db.Integer, nullable=False)
+	age = db.Column(db.Integer, nullable=False)
+	
 
-	def __init__(self, chatname, parent_id, date_created, activity_type, duration, duration_minutes, calculation):
+	def __init__(self, chatname, parent_id, date_created, activity_type, duration, duration_minutes, calculation, weight, height, age):
 		self.chatname = chatname   
 		self.parent_id = parent_id
 		self.date_created = date_created
@@ -49,6 +53,9 @@ class Chatroom(db.Model):
 		self.duration = duration
 		self.duration_minutes = duration_minutes
 		self.calculation = calculation
+		self.weight = weight
+		self.height = height
+		self.age = age
 	
 class Message(db.Model):
 	__tablename__ = 'message'
