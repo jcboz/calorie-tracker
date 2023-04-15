@@ -70,6 +70,7 @@
       <label for="no">no</label><br>
     </dl>
     <div class="actions"><input type="submit" value="Caluclate!"></div>
+
   </form>
   
   <script>    
@@ -77,6 +78,13 @@
   
    
   </script>
+
+<h2>Your Last Calculation</h2>
+<h3>Activity: {{ activity }}</h3>
+<h3>Duration: {{ durationHour }}h {{ durationMinute }}m</h3>
+<h3>Calories burned: {{ calculation }}</h2>
+	
+	
   
 {% endblock %}
 

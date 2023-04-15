@@ -3,7 +3,7 @@ import os
 import json
 from hashlib import md5
 from datetime import datetime
-from flask import Flask, request, session, url_for, redirect, render_template, abort, g, flash, _app_ctx_stack, jsonify, make_response
+from flask import Flask, request, session, url_for, redirect, render_template, abort, g, flash, jsonify, make_response
 from werkzeug.security import check_password_hash, generate_password_hash
 from datetime import datetime
 from sqlalchemy import not_, and_, cast, func
@@ -61,7 +61,14 @@ def get_message_id(meat):
 def get_calories_burnt(activity, hours, minutes):
 	"""Function for calculating calories burnt"""
 	# calories = (time(mins) * MET * body weight(kg)) / 200
-	time = (float(hours) * 60) + float(minutes) #converting to minutes
+	
+	hours = float(hours)
+	minutes = float(minutes)
+	if(hours > 0):
+		time = (hours * 60) + minutes #converting to minutes
+	else:
+		time = minutes #make sure calc does not mult by 0 if hours <= 0
+	
 	print(time, "this is a test")
 	weight = g.user.weight / 2.205 #converting to kg
 	# Every exercise has an MET index that basically says how hard it is and is used to calculate how many calories are burnt
@@ -123,21 +130,35 @@ def login():
 @app.route('/register', methods=['GET', 'POST'])
 def register():
 	"""Register an account"""
+	
 	error = None
 	if request.method == 'POST':
-		if not request.form['username']:
+		user = request.form['username']
+		pw = request.form['password']
+		age = request.form['age']
+		weight = request.form['weight']
+		height = request.form['height']
+
+		if not user:
 			error = 'You have to enter a username'
-		elif not request.form['password']:
+		elif not pw:
 			error = 'You have to enter a password'
-		elif request.form['password'] != request.form['password2']:
+		elif pw != request.form['password2']:
 			error = 'The two passwords do not match'
-		elif get_user_id(request.form['username']) is not None:
+		elif get_user_id(user) is not None:
 			error = 'The username is already taken'
+		elif not age or age.isdigit() == False:
+			error = 'Enter a valid age'
+		elif not weight or weight.isdigit() == False:
+			error = 'Enter a valid weight'
+		elif not height or height.isdigit() == False:
+			error = 'Enter a valid height'
 		else:
-			db.session.add(User(request.form['username'], generate_password_hash(request.form['password']), None, request.form['age'], request.form['weight'], request.form['height']))
+			db.session.add(User(user, generate_password_hash(pw), None, age, weight, height))
 			db.session.commit()
 			flash('You were successfully registered and can login now')
 			return redirect(url_for('login'))
+		
 	return render_template('register.html', error=error)
 	
 @app.route('/logout')
@@ -150,20 +171,34 @@ def logout():
 @app.route('/createChat', methods=['GET', 'POST'])
 def createChat():
 	error = None
+	calculation = 0
+	activity = None
+	durationHour = 0
+	durationMinute = 0
+
 	if not g.user:
 		return redirect(url_for('home'))
 	if request.method == 'POST':
-		if not request.form['activitytype']:
-			error = 'You have to enter an activity'
-		elif not request.form['duration']:
-			error = 'You have to enter duration'
-		elif not request.form['duration_minutes']:
-			error = 'You have to enter duration minutes'
+		act = request.form['activitytype']
+		durHr = request.form['duration']
+		durMin = request.form['duration_minutes']
+
+		if not act:
+			error = 'You have to enter a valid activity'
+		elif not durHr or durHr.isdigit() == False:
+			error = 'You have to enter a valid duration in hours'
+		elif not durMin or durMin.isdigit() == False:
+			error = 'You have to enter a valid duration in minutes'
 		else:
-			db.session.add(Chatroom(request.form['activitytype'], g.user.user_id, datetime.now(), request.form['activitytype'], request.form['duration'], request.form['duration_minutes'], get_calories_burnt(request.form['activitytype'], request.form['duration'], request.form['duration_minutes']), g.user.weight, g.user.height, g.user.age))
+			calculation = get_calories_burnt(act, durHr, durMin)
+			activity = act
+			durationHour = durHr
+			durationMinute = durMin
+			db.session.add(Chatroom(act, g.user.user_id, datetime.now(), act, durHr, durMin, calculation, g.user.weight, g.user.height, g.user.age))
 			db.session.commit()
 			flash('You have successfully calculated a new activity')
-	return render_template('createChat.html', error=error)
+
+	return render_template('createChat.html', error=error, calculation=calculation, activity=activity, durationHour=durationHour, durationMinute=durationMinute)
 	
 @app.route('/delete/<chatroomid>')
 def delete(chatroomid):
@@ -175,7 +210,7 @@ def delete(chatroomid):
 	chatroom = Chatroom.query.filter_by(chatroom_id=chatroomid).first()
 	db.session.delete(chatroom)
 	db.session.commit()
-	flash('Chat Room successfully deleted')
+	flash('Calculation successfully deleted')
 	return redirect(url_for('home'))
 	
 # @app.route('/join/<chatroomid>')
@@ -222,7 +257,7 @@ def get_messages():
 	if not g.user:
 		redirect(url_for('login'))
 	if Chatroom.query.filter_by(chatroom_id=g.user.curr_room).first() is None:
-		flash("Room has been deleted")
+		flash("Calculation has been deleted")
 		abort(404)
 	if g.user.update is None:
 		msgs = Message.query.filter_by(chatroom=g.user.chatroom).order_by(Message.date).all()
