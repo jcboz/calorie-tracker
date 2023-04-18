@@ -4,9 +4,6 @@
 <script>
   var subjectObject = {
     "Walking": {
-      "HTML": ["Links", "Images", "Tables", "Lists"],
-      "CSS": ["Borders", "Margins", "Backgrounds", "Float"],
-      "JavaScript": ["Variables", "Operators", "Functions", "Conditions"]    
     },
     "Running": {
     },
@@ -86,60 +83,3 @@
 </div>
   
 {% endblock %}
-
-<!-- fetch('/get_profile', {
-  method: "get",
-  headers: new Headers({
-    "content-type": "application/json"
-  }),
-})
-  .then((response) => {
-    if (response.status !== 200) {
-      console.log(`Woah: Looks like there was a problem. Status code: ${response.status}`);
-    }
-    if (response.status == 404) {
-      console.log("SHOULD REDIRECT")
-    }
-    json = response.json();
-    console.log(json);
-    return json;
-  })
-  .then((data) => {
-      console.log(data);
-      //parsed = JSON.parse(data);
-      //console.log(parsed);
-      display(data);
-      clearInput();
-  })
-  .catch((error) => {
-    console.log("Fetch error: " + error);
-  });   
-  
-
-function display(data) {
-var msg = document.getElementById("profile_info");
-for (var i = 0; i < data.length; i++) {
-  var div = document.createElement("div");
-  div.textContent = 'Name: ' + data[i].user;
-  msg.appendChild(div);
-}
-for (var i = 0; i < data.length; i++) {
-    var div = document.createElement("div");
-    div.textContent = 'Age: ' + data[i].age;
-    msg.appendChild(div);
-}
-for (var i = 0; i < data.length; i++) {
-    var div = document.createElement("div");
-    div.textContent = 'Height: ' + data[i].height + 'ins';
-    msg.appendChild(div);
-}
-for (var i = 0; i < data.length; i++) {
-    var div = document.createElement("div");
-    div.textContent = 'Weight: ' + data[i].weight + 'lbs';
-    msg.appendChild(div);
-}
-timeoutID = window.setTimeout(poller, POLL_INTERVAL);
-
-
-
-} -->
