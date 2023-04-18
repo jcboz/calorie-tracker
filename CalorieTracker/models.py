@@ -12,9 +12,8 @@ class User(db.Model):
 	age = db.Column(db.Integer, nullable=False)
 	weight = db.Column(db.Integer, nullable=False)
 	height = db.Column(db.Integer, nullable=False)
-	chatrooms = relationship("Chatroom", backref="user", lazy="dynamic", foreign_keys='Chatroom.parent_id', post_update=True)
-	messages = relationship("Message", backref="user", lazy="dynamic", foreign_keys='Message.messToUser_id', post_update=True)
-	curr_room = db.Column(db.Integer, db.ForeignKey('chatroom.chatroom_id', use_alter=True), nullable=True)
+	activities = relationship("Activity", backref="user", lazy="dynamic", foreign_keys='Activity.parent_id', post_update=True)
+	curr_room = db.Column(db.Integer, db.ForeignKey('activity.activity_id', use_alter=True), nullable=True)
 	update = db.Column(db.DateTime, nullable=True)
 	
 	def __init__(self, username, pw_hash, update, age, weight, height):
@@ -28,13 +27,11 @@ class User(db.Model):
 	def __repr__(self):
 		return '{}'.format(self.username)
 
-class Chatroom(db.Model):
-	__tablename__ = 'chatroom'
-	chatroom_id = db.Column(db.Integer, primary_key=True)
-	chatname = db.Column(db.String(24), nullable=False)
+class Activity(db.Model):
+	__tablename__ = 'activity'
+	activity_id = db.Column(db.Integer, primary_key=True)
 	parent_id = db.Column(db.Integer, db.ForeignKey('user.user_id'), nullable=True)
-	messages = relationship("Message", backref="chatroom", lazy="dynamic")
-	users = relationship("User", backref="chatroom", lazy="dynamic", foreign_keys='User.curr_room', post_update=True)
+	users = relationship("User", backref="activity", lazy="dynamic", foreign_keys='User.curr_room', post_update=True)
 	date_created = db.Column(db.DateTime, nullable=True)
 	activity_type = db.Column(db.String(24), nullable=False)
 	duration = db.Column(db.Integer, nullable=False)
@@ -56,18 +53,4 @@ class Chatroom(db.Model):
 		self.weight = weight
 		self.height = height
 		self.age = age
-	
-class Message(db.Model):
-	__tablename__ = 'message'
-	message_id = db.Column(db.Integer, primary_key=True)
-	meat = db.Column(db.String(64), nullable=False)
-	messToChat_id = db.Column(db.Integer, db.ForeignKey('chatroom.chatroom_id'), nullable=True)
-	messToUser_id = db.Column(db.Integer, db.ForeignKey('user.user_id'), nullable=True)
-	date = db.Column(db.DateTime, nullable=False)
-	
-	def __init__(self, meat, messToUser_id, date):
-		self.meat = meat  
-		self.messToUser_id = messToUser_id
-		self.date = date
-		#self.messToChat_id = messToChat_id
 	

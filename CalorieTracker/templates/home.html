@@ -2,19 +2,31 @@
 {% block title %}Sign In{% endblock %}
 {% block body %}
     <ul>
-        <li><a href="{{ url_for('createChat') }}">New Activity </a></li>
+        <li><a href="{{ url_for('newActivity') }}">New Activity </a></li>
         <li class="active"><a href="{{ url_for('home') }}">Past Activities </a></li>
         <li><a href="{{ url_for('profile') }}">Profile</a></li>
         <li><a href="{{ url_for('logout') }}">Log Out</a></li>
     </ul>
-  {% if chatrooms %}
+  {% if activities %}
   <div class="events">
-  {%for chatroom in chatrooms%}
-    <div class="event">
-      {% if g.user.user_id == chatroom.parent_id%} <span>Activity: {{ chatroom.chatname }} | </span> <span> Date: {{ chatroom.date_created }}</span> 
-      <a href="{{ url_for('chatroom', chatroomid=chatroom.chatroom_id) }}"> View </a> <a href="{{ url_for('delete', chatroomid=chatroom.chatroom_id) }}">Delete</a> {% endif %} </a>
-    </div>
+  
+  <table>
+    <tr>
+      <th style="text-align: center;">Activity</th>
+      <th style="text-align: center;">Date</th>
+      <th>    </th>
+    </tr>
+  {%for activity in activities%} 
+  {% if g.user.user_id == activity.parent_id%}
+    <tr>
+           <span><td style="text-align: center;">{{ activity.activity_type }}</td></span> <span><td style="text-align: center;">{{ activity.date_created.strftime('%a %d %b %Y, %I:%M%p') }}</td></span> 
+          <td style="text-align: center;"><a style="text-decoration: none;" href="{{ url_for('activity', activityid=activity.activity_id) }}"> View </a> <a style="text-decoration: none;" href="{{ url_for('delete', activityid=activity.activity_id) }}">Delete</a> </td>
+    </tr>
+    {% endif %}
   {% endfor %}
+  </table>
+  
+  </div>
   {% else %}
     <span>There are no activities yet.</span>
   {% endif %}

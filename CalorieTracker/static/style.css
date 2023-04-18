@@ -43,7 +43,17 @@ input[type="submit"] {
     -webkit-border-radius: 2px;
     color: white;
 }
-
+input[type="button"] {
+    background: #105751;;
+    border: 1px solid #073B36;
+    padding: 1px 3px;
+    font-family: 'Trebuchet MS', sans-serif;
+    font-size: 14px;
+    font-weight: bold;
+    -moz-border-radius: 2px;
+    -webkit-border-radius: 2px;
+    color: white;
+}
 
 
 div.page {
@@ -82,17 +92,18 @@ div.page h1 {
 div.page div.events {
     color: #282727;
     font-size: large;
-    padding-top: 20px;
-    padding-bottom: 40%;
+    padding-bottom: 20%;
+    display: flex;
+    align-items: center;
 }
 
-div.page div.event {
-    display: flex;
+div.event {
     flex-direction: row;
-    padding-top: 20px;
+    padding-bottom: 10px;
 }
 
 div.page div.event a {
+    padding-block: 10px;
     padding-left: 1cm;
 }
 
@@ -134,9 +145,11 @@ li a {
 /* Change the link color to #111 (black) on hover */
 li a:hover {
     background-color: #111;
+    transition-duration: 0.2s;
 }
 li a:hover:not(.active) {
     background-color: #111;
+    transition-duration: 0.2s;
   }
 .active {
   background-color: rgb(167, 203, 208);
@@ -222,3 +235,19 @@ div.error {
     padding: 4px;
     font-size: 13px;
 }
+
+#editbutton { 
+    margin-right: 10px;
+}
+
+td, th {
+    border: 1px solid #dddddd;
+    text-align: left;
+    padding: 8px;
+  }
+  
+  tr:nth-child(odd) {
+    background-color: #dddddd;
+  }
+  
+  

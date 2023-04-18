@@ -43,17 +43,19 @@
   }
   </script>
   <ul>
-    <li class="active"><a href="{{ url_for('createChat') }}">New Activity </a></li>
+    <li class="active"><a href="{{ url_for('newActivity') }}">New Activity </a></li>
     <li><a href="{{ url_for('home') }}">Past Activities </a></li>
     <li><a href="{{ url_for('profile') }}">Profile</a></li>
     <li><a href="{{ url_for('logout') }}">Log Out</a></li>
   </ul>
+  
+  <div style="margin: 1% 0 0 1%">
   <h2>New Activity</h2>
   {% if error %}<div class="error"><strong>Error:</strong> {{ error }}</div>{% endif %}
   <form action="" method="post">
     <dl>
       <dt>Activity Type: 
-        <dd><select name="activitytype" id="subject">
+        <select style="margin: 0 0 5px 0" name="activitytype" id="subject">
             <option value="" selected="selected">Select activity</option>
           </select>
       <!--
@@ -61,30 +63,27 @@
       <dd><input type="text" name="activity type" size="30" value="{{ request.form.chatname }}">
       -->
       <dt>Duration:
-      <dd><input type="text" name="duration" placeholder="hours" size="10">
+      <input style="margin: 0 0 5px 0" type="text" name="duration" placeholder="hours" size="10">
       <input type="text" name="duration_minutes" placeholder="minutes" size="10">
-      <dt>Would you like to use your saved profile information?:
-      <input type="radio" name="userinfo" value="yes" id="yes" size="30">
-      <label for="yes">yes</label>
-      <input type="radio" name="userinfo" value="no" id="no" size="30">
-      <label for="no">no</label><br>
+      <dt>Would you like to save this calculation?:
+      <input type="checkbox" name="userinfo" value="no" id="check" size="30">
     </dl>
-    <div class="actions"><input type="submit" value="Caluclate!"></div>
+    <div class="actions"><input type="submit" value="Calculate!"></div>
 
   </form>
   
   <script>    
     
-  
+    
    
   </script>
 
-<h2>Your Last Calculation</h2>
+<h2 style="margin: 10px 0 0 0">Your Last Calculation</h2>
 <h3>Activity: {{ activity }}</h3>
 <h3>Duration: {{ durationHour }}h {{ durationMinute }}m</h3>
-<h3>Calories burned: {{ calculation }}</h2>
+<h3>Calories burned: {{ calculation }}</h3>
 	
-	
+</div>
   
 {% endblock %}
 

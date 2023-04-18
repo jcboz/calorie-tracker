@@ -8,7 +8,7 @@ from werkzeug.security import check_password_hash, generate_password_hash
 from datetime import datetime
 from sqlalchemy import not_, and_, cast, func
 
-from models import db, User, Chatroom, Message
+from models import db, User, Activity
 
 # create our little application :)
 app = Flask(__name__)
@@ -18,10 +18,10 @@ PER_PAGE = 30
 DEBUG = True
 SECRET_KEY = 'development key'
 
-SQLALCHEMY_DATABASE_URI = 'sqlite:///' + os.path.join(app.root_path, 'chat.db')
+SQLALCHEMY_DATABASE_URI = 'sqlite:///' + os.path.join(app.root_path, 'calorie.db')
 
 app.config.from_object(__name__)
-app.config.from_envvar('CHATAPP_SETTINGS', silent=True)
+app.config.from_envvar('CALORIEAPP_SETTINGS', silent=True)
 
 db.init_app(app)
 
@@ -48,15 +48,10 @@ def get_user_id(username):
 	rv = User.query.filter_by(username=username).first()
 	return rv.user_id if rv else None
 	
-def get_chatroom_id(chatname):
-	"""Convenience method to look up the id for a chatroom."""
-	rv = Chatroom.query.filter_by(chatname=chatname).first()
-	return rv.chatroom_id if rv else None
-	
-def get_message_id(meat):
-	"""Convenience method to look up the id for a message"""
-	rv = Message.query.filter_by(meat=meat).first()
-	return rv.chatroom_id if rv else None
+def get_activity_id(activity):
+	"""Convenience method to look up the id for a activity."""
+	rv = Activity.query.filter_by(activity=activity).first()
+	return rv.activity_id if rv else None
 	
 def get_calories_burnt(activity, hours, minutes):
 	"""Function for calculating calories burnt"""
@@ -82,7 +77,7 @@ def get_calories_burnt(activity, hours, minutes):
 		mET = 11.5
 	elif activity == "Walking":
 		mET = 5
-	elif activity == "Cylcing":
+	elif activity == "Cycling":
 		mET = 8
 	elif activity == "Swimming":
 		mET = 9.5
@@ -94,21 +89,47 @@ def get_calories_burnt(activity, hours, minutes):
 
 @app.route('/', methods=['GET', 'POST'])
 def home():
-    """Shows the home screen with available chat rooms"""
+    """Shows the home screen with activities"""
     if not g.user:
         return redirect('/login')
-    g.user.chatroom = None
+    g.user.activity = None
     db.session.commit()
-    chatrooms = Chatroom.query.all()  
-    print(chatrooms)
-    return render_template('home.html', chatrooms=chatrooms)
+    activities = Activity.query.all()  
+    print(activities)
+    return render_template('home.html', activities=activities)
     
 @app.route('/profile', methods=['GET', 'POST'])
 def profile():
     if not g.user:
         return redirect('/login')
+    if request.method == 'POST':
+        return redirect('/editprofile')
     db.session.commit()
     return render_template('profile.html')
+    
+@app.route('/editprofile', methods=['GET', 'POST'])
+def editprofile():
+    if not g.user:
+        return redirect('/login')
+    if request.method == 'POST':
+        name = request.form['username']
+        height = request.form['height']
+        weight = request.form['weight']
+        age = request.form['age']
+        print(name,height,weight,age)
+        id = get_user_id(g.user.username)
+        user = User.query.get(id)
+        print(user.weight)
+        user.username = name
+        user.height = height
+        user.weight = weight
+        print(user.weight)
+        user.age = age
+        flash('You have successfully updated profile info')
+        db.session.commit()
+        return redirect('/profile')
+    db.session.commit()
+    return render_template('editprofile.html')
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -123,7 +144,7 @@ def login():
 		else:
 			flash('You were logged in')
 			session['user_id'] = user.user_id
-			return redirect(url_for('createChat'))
+			return redirect(url_for('newActivity'))
 	return render_template('login.html', error=error)
 
     
@@ -168,8 +189,8 @@ def logout():
 	session.pop('user_id', None)
 	return redirect(url_for('home'))
 	
-@app.route('/createChat', methods=['GET', 'POST'])
-def createChat():
+@app.route('/newActivity', methods=['GET', 'POST'])
+def newActivity():
 	error = None
 	calculation = 0
 	activity = None
@@ -185,108 +206,66 @@ def createChat():
 
 		if not act:
 			error = 'You have to enter a valid activity'
-		elif not durHr or durHr.isdigit() == False:
-			error = 'You have to enter a valid duration in hours'
-		elif not durMin or durMin.isdigit() == False:
-			error = 'You have to enter a valid duration in minutes'
+		elif not durHr and durHr == False:
+			error = 'You have to enter a duration'
+		elif not durHr.isdigit() or durMin.isdigit() == False:
+			error = 'You must enter non-negative numbers only'
 		else:
 			calculation = get_calories_burnt(act, durHr, durMin)
+			storeActivity = request.form['userinfo'] if ('userinfo' in request.form) else None
+			print(storeActivity)
 			activity = act
 			durationHour = durHr
 			durationMinute = durMin
-			db.session.add(Chatroom(act, g.user.user_id, datetime.now(), act, durHr, durMin, calculation, g.user.weight, g.user.height, g.user.age))
-			db.session.commit()
-			flash('You have successfully calculated a new activity')
+			if storeActivity is not None:
+				db.session.add(Activity(act, g.user.user_id, datetime.now(), act, durHr, durMin, calculation, g.user.weight, g.user.height, g.user.age))
+				db.session.commit()
+				flash('You have successfully saved a new activity')
 
-	return render_template('createChat.html', error=error, calculation=calculation, activity=activity, durationHour=durationHour, durationMinute=durationMinute)
+	return render_template('newActivity.html', error=error, calculation=calculation, activity=activity, durationHour=durationHour, durationMinute=durationMinute)
 	
-@app.route('/delete/<chatroomid>')
-def delete(chatroomid):
+@app.route('/delete/<activityid>')
+def delete(activityid):
 	if not g.user:
 		return redirect('/login')
-	if not chatroomid:
+	if not activityid:
 		abort(404)
 	
-	chatroom = Chatroom.query.filter_by(chatroom_id=chatroomid).first()
-	db.session.delete(chatroom)
+	activity = Activity.query.filter_by(activity_id=activityid).first()
+	db.session.delete(activity)
 	db.session.commit()
 	flash('Calculation successfully deleted')
 	return redirect(url_for('home'))
 	
-# @app.route('/join/<chatroomid>')
-# def join(chatroomid):
-# 	if not g.user:
-# 		return redirect('/login')
-# 	if not chatroomid:
-# 		abort(404)
-# 	room = Chatroom.query.filter_by(chatroom_id=chatroomid).first()
-# 	users = room.users
-# 	users.append(g.user)
-# 	room.users = users
-# 	db.session.commit()
-# 	flash('Chat successfully joined')
-# 	return redirect(url_for('new_chatroom'))
-	
-	
-@app.route('/chatroom/<chatroomid>', methods=['GET', 'POST'])
-def chatroom(chatroomid):
-	room = Chatroom.query.filter_by(chatroom_id=chatroomid).first()
+@app.route('/activity/<activityid>', methods=['GET', 'POST'])
+def activity(activityid):
+	room = Activity.query.filter_by(activity_id=activityid).first()
 	if room is None:
 		abort(404)
 	room.users.append(g.user)
 	g.user.update = None
 	db.session.commit()
-	return render_template('chatroom.html', chatroom=room)
+	return render_template('activity.html', activity=room)
 	
-@app.route('/chatroom/create-post', methods=['POST'])
-def create_post():
-	req = request.get_json()
-	res = make_response(jsonify(req), 200)
-	if not request.json['meat']:
-		error = 'You have to enter a message'
-	else:
-		message = Message(request.json['meat'], g.user.user_id, datetime.now())
-		db.session.add(message)
-		g.user.chatroom.messages.append(message)
-		db.session.commit()
-		flash('You have successfully posted')
-	return res
-	
-@app.route('/get_messages', methods=['GET'])
-def get_messages():
+@app.route('/get_activities', methods=['GET'])
+def get_activities():
 	if not g.user:
 		redirect(url_for('login'))
-	if Chatroom.query.filter_by(chatroom_id=g.user.curr_room).first() is None:
+	if Activity.query.filter_by(activity_id=g.user.curr_room).first() is None:
 		flash("Calculation has been deleted")
 		abort(404)
-	if g.user.update is None:
-		msgs = Message.query.filter_by(chatroom=g.user.chatroom).order_by(Message.date).all()
-	else:
-		msgs = Message.query.filter_by(chatroom=g.user.chatroom).filter(Message.date > g.user.update).order_by(Message.date).all()
-	print(msgs)
 	messyDict = []
-	#create an empty array, iterate over all messages queried. 
-	for msg in msgs:
-		dictionary = {
-		'user': msg.user.username,
-		'content': msg.meat,
-		'date': str(msg.date),
-		}
-		messyDict.append(dictionary)
+	
 	#get username, text, creation date
 	#append dictionary containing string text gotten from user
 	g.user.update = datetime.now()
 	db.session.commit()
 	return jsonify(messyDict)
 	
-@app.route('/get_profile', methods=['GET'])
+@app.route('/get_profile', methods=['GET', 'POST'])
 def get_profile():
 	if not g.user:
 		redirect(url_for('login'))
-	#if Chatroom.query.filter_by(chatroom_id=g.user.curr_room).first() is None:
-	#	flash("Room has been deleted")
-	#	abort(404)
-	# print(g.user.username + "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
 	messyDict = []
 	#create an empty array, iterate over all messages queried. 
 	dictionary = {
@@ -298,5 +277,19 @@ def get_profile():
 	messyDict.append(dictionary)
 	#get username, text, creation date
 	#append dictionary containing string text gotten from user
+	
+	if request.method == 'PATCH':
+		name = request.form['name']
+		height = request.form['height']
+		weight = request.form['weight']
+		age = request.form['age']
+	
+	id = get_user_id(g.user.username)
+	user = User.query.get(id)
+	user.username = name
+	user.height = height
+	user.weight = weight
+	user.age = age
+	
 	db.session.commit()
 	return jsonify(messyDict)
