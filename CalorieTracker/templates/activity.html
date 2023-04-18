@@ -7,7 +7,7 @@
   <li><a href="{{ url_for('profile') }}">Profile</a></li>
   <li><a href="{{ url_for('logout') }}">Log Out</a></li>
 </ul>
-  <h2>{{ activity.chatname }}</h2>
+  <h2>{{ activity.activity_type }}</h2>
   <h3> Name: {{ activity.user }} {{activity.height}}ins {{activity.weight}}lbs</h3>
   <h4> Type: {{ activity.activity_type }} </h4> 
   <h4> Duration: {{ activity.duration }} hours and {{ activity.duration_minutes }} minutes</h4>  

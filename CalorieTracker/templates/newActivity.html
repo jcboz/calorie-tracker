@@ -20,16 +20,16 @@
       subjectSel.options[subjectSel.options.length] = new Option(x, x);
     }
     subjectSel.onchange = function() {
-      //empty Chapters- and Topics- dropdowns
-      chapterSel.length = 1;
-      topicSel.length = 1;
+      //empty Chapters- and Topics- dropdowns
+      chapterSel.length = 1;
+      topicSel.length = 1;
       //display correct values
       for (var y in subjectObject[this.value]) {
         topicSel.options[topicSel.options.length] = new Option(y, y);
       }
     }
     topicSel.onchange = function() {
-      //empty Chapters dropdown
+      //empty Chapters dropdown
       chapterSel.length = 1;
       //display correct values
       var z = subjectObject[subjectSel.value][this.value];
@@ -55,10 +55,6 @@
         <select style="margin: 0 0 5px 0" name="activitytype" id="subject">
             <option value="" selected="selected">Select activity</option>
           </select>
-      <!--
-      <dt>Activity Type:
-      <dd><input type="text" name="activity type" size="30" value="{{ request.form.chatname }}">
-      -->
       <dt>Duration:
       <input style="margin: 0 0 5px 0" type="text" name="duration" placeholder="hours" size="10">
       <input type="text" name="duration_minutes" placeholder="minutes" size="10">
